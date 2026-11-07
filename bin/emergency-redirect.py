@@ -31,6 +31,10 @@ elbv2 = boto3.client('elbv2')
 
 logging.basicConfig(level=logging.INFO, format="%(message)s")
 logger = logging.getLogger(__name__)
+logging.getLogger("boto3").setLevel(logging.WARNING)
+logging.getLogger("botocore").setLevel(logging.WARNING)
+logging.getLogger("s3transfer").setLevel(logging.WARNING)
+logging.getLogger("urllib3").setLevel(logging.WARNING)
 
 
 @click.group(invoke_without_command=True)
@@ -47,55 +51,75 @@ def cli(verbose):
 
 
 # List ALB names
-# TODO: add flag "--eligible" which displays just ALBs which have enrolled in the service.
 @cli.command('list')
 def list():
     """
     List names of all active internet-facing ALBs in current AWS account
     """
+    template = "{:<40} {:<12}"
+    logger.info(template.format("ALB Name", "Eligibility"))
+    logger.info("-" * 52)
     for alb in get_internet_facing_alb():
-        print(alb['LoadBalancerName'])
+        # check for "emegency-redirect" tag
+        tags = get_tags(alb['LoadBalancerArn'])
+        logger.debug(yaml.dump(tags))
+        status = ""
+        if emergency_redirect_eligible(tags):
+            status = "eligible"
+        #logger.info(f"{alb['LoadBalancerName']}{message_suffix}")
+        logger.info(template.format(alb['LoadBalancerName'], status))
 
 
 # Display ER activation status for ALBs
 @cli.command('status')
-@click.option('--all',
+@click.option('--all-alb',
     is_flag=True,
-    default=True,
+    #default=True,
     help='Status summery for all ALBs')
 @click.option('--alb-name',
     help='Show full status for named ALB')
 @click.option('--dump-rules',
     is_flag=True,
     help='Display listener rules for named ALB')
-def status(all, alb_name, dump_rules):
+def status(all_alb, alb_name, dump_rules):
     """
     Show emergency redirect activation status of ALBs
     """
-    logger.debug(f"Parameters:\n  all: {all}\n  alb_name: {alb_name}\n  dump_rules: {dump_rules}")
-    if alb_name is not None:
-        is_active = False
+    logger.debug(f"Parameters:\n  all: {all_alb}\n  alb_name: {alb_name}\n  dump_rules: {dump_rules}")
+
+    template = "{:<40} {:<12}"
+    logger.info(template.format("ALB Name", "Status"))
+    logger.info("-" * 52)
+
+    if all_alb is True:
+        for alb in get_internet_facing_alb():
+            check_activation_status(alb, template)
+
+    elif alb_name is not None:
         alb = get_alb_by_name(alb_name)
-        alb_arn = alb['LoadBalancerArn']
-        if dump_rules:
-            logger.info(f"Listener rules for ALB: {alb_name}\n")
-        listeners = get_listeners(alb_arn)
-        for listener in listeners:
-            listener_arn = listener['ListenerArn']
-            if dump_rules:
-                logger.info(f"Listener: {listener_arn}\n")
-            rules = get_listener_rules(listener_arn)
-            if dump_rules:
-                logger.info(f"Listener Rules:\n{yaml.dump(rules)}")
-            for rule in rules:
-                if rule['Priority'] == first_priority:
-                    logger.debug(rule['RuleArn'])
-                    tags = get_tags(rule['RuleArn'])
-                    logger.debug(f"rule tags: {yaml.dump(tags)}")
-                    if emergency_redirect_rule_is_active(tags):
-                        is_active = True
-        if is_active:
-            logger.info(f"Emergency Redirect is active for ALB: {alb_name}")
+        check_activation_status(alb, template)
+
+def check_activation_status(alb, template):
+    status = ""
+    alb_arn = alb['LoadBalancerArn']
+    #if dump_rules:
+    #    logger.info(f"Listener rules for ALB: {alb['LoadBalancerName']}\n")
+    listeners = get_listeners(alb_arn)
+    for listener in listeners:
+        listener_arn = listener['ListenerArn']
+        #if dump_rules:
+        #    logger.info(f"Listener: {listener_arn}\n")
+        rules = get_listener_rules(listener_arn)
+        #if dump_rules:
+        #    logger.info(f"Listener Rules:\n{yaml.dump(rules)}")
+        for rule in rules:
+            if rule['Priority'] == first_priority:
+                logger.debug(rule['RuleArn'])
+                tags = get_tags(rule['RuleArn'])
+                logger.debug(f"rule tags: {yaml.dump(tags)}")
+                if emergency_redirect_rule_is_active(tags):
+                    status = "Activated"
+    logger.info(template.format(alb['LoadBalancerName'], status))
 
 
 # Activate emergency redirect for listed ALBs
@@ -111,43 +135,54 @@ def activate(all, alb_name):
     Activate emergency redirect for listed ALBs
     """
     logger.debug(f"Parameters:\n  all: {all}\n  alb_name: {alb_name}")
-    if alb_name is not None:
+
+    if all is True:
+        for alb in get_internet_facing_alb():
+            # check for "emegency-redirect" tag
+            tags = get_tags(alb['LoadBalancerArn'])
+            logger.debug(yaml.dump(tags))
+            if emergency_redirect_eligible(tags):
+                insert_fixed_response_rule(alb['LoadBalancerArn'])
+
+    elif alb_name is not None:
         alb = get_alb_by_name(alb_name)
         alb_arn = alb['LoadBalancerArn']
-        listeners = get_listeners(alb_arn)
-        for listener in listeners:
-            #logger.debug(yaml.dump(listener))
-            listener_arn = listener['ListenerArn']
-            rules = get_listener_rules(listener_arn)
-            #logger.debug(yaml.dump(rules))
-            priorities = [rule['Priority'] for rule in rules]
-            if not first_priority in priorities:
-                try:
-                    # insert new fixed-response rule as first priority
-                    response = elbv2.create_rule(
-                        ListenerArn=listener_arn,
-                        Priority=int(first_priority),
-                        Actions=[{
-                            'Type': 'fixed-response',
-                            'FixedResponseConfig': {
-                                'MessageBody': emergency_message,
-                                'StatusCode': '200',
-                                'ContentType': 'text/html'
-                            },
-                        }],
-                        Conditions=[{
-                            'Field': 'path-pattern',
-                            'PathPatternConfig': {
-                                'Values': ['/*']
-                            }
-                        }],
-                        Tags=[{
-                            'Key': 'emergency_redirect',
-                            'Value': 'active'
-                        }],
-                    )
-                except ClientError as e:
-                    logger.error(f"Exception: {type(e).__name__}")
+        insert_fixed_response_rule(alb['LoadBalancerArn'])
+
+
+def insert_fixed_response_rule(alb_arn):
+    listeners = get_listeners(alb_arn)
+    for listener in listeners:
+        listener_arn = listener['ListenerArn']
+        rules = get_listener_rules(listener_arn)
+        priorities = [rule['Priority'] for rule in rules]
+        if not first_priority in priorities:
+            try:
+                # insert new fixed-response rule as first priority
+                response = elbv2.create_rule(
+                    ListenerArn=listener_arn,
+                    Priority=int(first_priority),
+                    Actions=[{
+                        'Type': 'fixed-response',
+                        'FixedResponseConfig': {
+                            'MessageBody': emergency_message,
+                            'StatusCode': '200',
+                            'ContentType': 'text/html'
+                        },
+                    }],
+                    Conditions=[{
+                        'Field': 'path-pattern',
+                        'PathPatternConfig': {
+                            'Values': ['/*']
+                        }
+                    }],
+                    Tags=[{
+                        'Key': 'emergency_redirect',
+                        'Value': 'active'
+                    }],
+                )
+            except ClientError as e:
+                logger.error(f"Exception: {type(e).__name__}")
     
 
 @cli.command('deactivate')
@@ -181,6 +216,14 @@ def deactivate(all, alb_name):
 def get_tags(resource_arn):
     response = elbv2.describe_tags(ResourceArns=[resource_arn])
     return response['TagDescriptions'][0]['Tags']
+
+def emergency_redirect_eligible(tags):
+    key = 'emergency_redirect'
+    value = 'eligible'
+    tag = next((item for item in tags if item["Key"] == key and item["Value"] == value), False)
+    if tag:
+        return True
+    return False
 
 def emergency_redirect_rule_is_active(tags):
     key = 'emergency_redirect'
