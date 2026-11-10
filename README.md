@@ -1,9 +1,42 @@
 # UC3 Emergency Redirect
 
 A command-line tool for temporarily replacing application responses with a
-static maintenance page by adding a fixed-response rule to an AWS Application
-Load Balancer (ALB). The page directs visitors to the [CDL System Status
+static maintenance page.
+
+
+### Rationale
+
+In the face of AI driven software exploits, we may need to block access to UC3
+applications at a moments notice until the risk is understood and mitigation is
+available.  
+
+#### Goals
+
+- easy to use mechnism to activate/deactivate emergency redirect
+- any UC3 or IAS worker can activate including service owners and managers
+- can be applied to any application using an ALB
+- can be applied to individual application or in bulk to all UC3 apps
+
+#### How it Works
+
+Upon activation all internet traffic to a public facing web application is
+redirected to a static page by adding a fixed-response rule to an AWS
+Application Load Balancer (ALB). This new rule is set to priority 1 and
+applies a path pattern to capture all connections (`path-pattern: '/*'`).
+
+The redirect is deactivated by simply deleting the injected fixed-response rule.
+
+While the redirect is active client connection attempts are still logged via
+WAF and ALB logging.  Messages are indexed into OpenSearch
+
+Currently the fixed-response page directs visitors to the [CDL System Status
 page](https://cdlib.org/contact/system-status/).
+
+
+
+
+
+
 
 ## Requirements
 
