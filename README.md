@@ -4,7 +4,7 @@ A command-line tool for temporarily replacing application responses with a
 static maintenance page.
 
 
-### Rationale
+## Rationale
 
 In the face of AI driven software exploits, we may need to block access to UC3
 applications at a moments notice until the risk is understood and mitigation is
@@ -33,21 +33,38 @@ Currently the fixed-response page directs visitors to the [CDL System Status
 page](https://cdlib.org/contact/system-status/).
 
 
+## Prerequisites
+
+### Application Prerequisites
+
+There are 2 requirements for a UC3 app to participate in emergency-redirect:
+
+1. An application's ALB must not have a Listener Rule set with `priority: 1`.
+   This priority is reserved for use by emergency-redirect.
+1. Applications must __enroll__ by adding a specific resource tag to the app's ALB.
+   ALBs missing this tag are ignored.  This is a failsafe for bulk activation:
+   ```
+   Key: 'emergency-redirect'
+   Value: 'eligible'
+   ```
+
+### Execution Prerequisites
+
+This is a cli tool.  The operator must have a shell environnment with the following:
+
+- Python 3 environment
+- AWS SSO role with permission to describe load balancers, tags, listeners,
+  and rules, and to create and delete listener rules:
+  - `elasticloadbalancing:DescribeLoadBalancers`
+  - `DescribeTags`
+  - `DescribeListeners`
+  - `DescribeRules`
+  - `CreateRule` 
+  - `DeleteRule`
 
 
 
-
-
-## Requirements
-
-- Python 3
-- AWS credentials and a default AWS region configured for
-  [boto3](https://boto3.amazonaws.com/v1/documentation/api/latest/guide/credentials.html)
-- An AWS identity with permission to describe load balancers, tags, listeners,
-  and rules, and to create and delete listener rules
-  (`elasticloadbalancing:DescribeLoadBalancers`, `DescribeTags`,
-  `DescribeListeners`, `DescribeRules`, `CreateRule`, and `DeleteRule`)
-- Existing listener rules must leave priority `1` available for the emergency redirect
+## Installation
 
 Install the Python dependencies:
 

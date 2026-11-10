@@ -1,7 +1,6 @@
 Prototype Notes for an Emergency Redirect Tool
 ==============================================
-
-11/3/2026
+Note: this page is now obsolete.
 
 
 Requirements
