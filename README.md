@@ -15,7 +15,7 @@ available.
 - easy to use mechnism to activate/deactivate emergency redirect
 - any UC3 or IAS worker can activate including service owners and managers
 - can be applied to any application using an ALB
-- can be applied to individual application or in bulk to all UC3 apps
+- can be applied to individual application or in bulk to all eligible UC3 apps
 
 #### How it Works
 
@@ -42,11 +42,11 @@ There are 2 requirements for a UC3 app to participate in emergency-redirect:
 1. An application's ALB must not have a Listener Rule set with `priority: 1`.
    This priority is reserved for use by emergency-redirect.
 1. Applications must _enrole_ by adding a specific resource tag to the app's ALB.
-   ALBs missing this tag are ignored.  This is a failsafe for bulk activation:
    ```
    Key: 'emergency-redirect'
    Value: 'eligible'
    ```
+   ALBs missing this tag are ignored.  This is a failsafe for bulk activation:
 
 ### Execution Prerequisites
 
@@ -101,13 +101,12 @@ Commands:
 All subcommands have thier own `--help` menu.
 
 
-#### list
+### list
 
 List active, internet-facing application load balancers and whether each is
-eligible for bulk activation.  Eligibility is controlled by the load balancer
-tag `emergency-redirect=eligible`.
+eligible for bulk activation.
 
-```sh
+```
 agould@linux:~> emergency-redirect list --help
 Usage: emergency-redirect list [OPTIONS]
 
@@ -131,12 +130,15 @@ mrt-ecs-dev-ELB-ui                       -
 ezid-n2t-dev-network-ALB                 -           
 ```
 
+Eligibility is controlled by the load balancer tag `emergency-redirect=eligible`.
 
-#### status
 
-Show emergency redirect activation status of ALBs.  By default all ALBs are listed.
+### status
 
-```sh
+Show emergency redirect activation status of ALBs.  By default all
+internet-facing ALBs are listed.
+
+```
 agould@linux:~> emergency-redirect status --help
 Usage: emergency-redirect status [OPTIONS]
 
@@ -162,11 +164,11 @@ ezid-n2t-dev-network-ALB                 -
 
 ```
 
-#### activate
+### activate
 
 Activate the redirect for one load balancer, or for all eligible load balancers.
 
-```sh
+```
 agould@linux:~> emergency-redirect activate --help
 Usage: emergency-redirect activate [OPTIONS]
 
@@ -185,11 +187,11 @@ paths (`/*`) and returns the built-in HTML maintenance page with HTTP status
 `200`.  Added rules are tagged `emergency-redirect=active`
 
 
-#### deactivate
+### deactivate
 
-Deactivate a redirect by load balancer name:
+Deactivate a redirect by load balancer name or in bulk.
 
-```sh
+```
 agould@linux:~> emergency-redirect deactivate --help
 Usage: emergency-redirect deactivate [OPTIONS]
 
@@ -204,7 +206,7 @@ agould@linux:~> emergency-redirect deactivate --all-alb
 ```
 
 Deactivation deletes priority-`1` rules tagged `emergency_redirect=active`
-from the named load balancer's listeners.
+from the named load balancer's listeners, irregardless of _eligibility_.
 
 
 
