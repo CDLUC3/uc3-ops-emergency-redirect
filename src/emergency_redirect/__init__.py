@@ -71,7 +71,7 @@ def list():
     help='Show activation status only for named ALB')
 @click.option("--verbose", "-v",
     is_flag=True,
-    help='Display listener rules only for named ALB. Requires "--alb-name"')
+    help='Display listener rules for named ALB. Requires "--alb-name"')
 def status(alb_name, verbose):
     """
     Show emergency redirect activation status of ALBs
@@ -97,7 +97,7 @@ def status(alb_name, verbose):
 @cli.command('activate')
 @click.option('--all-alb',
     is_flag=True,
-    help='Include all ALBs')
+    help='Include all eligible ALBs')
 @click.option('--alb-name',
     help='Name of an ALB in current account')
 def activate(all_alb, alb_name):
