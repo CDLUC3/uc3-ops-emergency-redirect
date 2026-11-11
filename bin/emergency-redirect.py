@@ -61,7 +61,7 @@ def list():
     # check for "emegency-redirect" tag 
     for alb in get_internet_facing_alb():
         status = "-"
-        if has_tag(alb['LoadBalancerArn'], 'emergency_redirect', 'eligible'):
+        if has_tag(alb['LoadBalancerArn'], 'emergency-redirect', 'eligible'):
             status = "eligible"
         logger.info(template.format(alb['LoadBalancerName'], status))
 
@@ -108,11 +108,11 @@ def activate(all_alb, alb_name):
     if all_alb is True:
         for alb in get_internet_facing_alb():
             # check for "emegency-redirect" tag
-            if has_tag(alb['LoadBalancerArn'], 'emergency_redirect', 'eligible'):
+            if has_tag(alb['LoadBalancerArn'], 'emergency-redirect', 'eligible'):
                 insert_fixed_response_rule(alb['LoadBalancerArn'])
     elif alb_name is not None:
         alb = get_alb_by_name(alb_name)
-        if has_tag(alb['LoadBalancerArn'], 'emergency_redirect', 'eligible'):
+        if has_tag(alb['LoadBalancerArn'], 'emergency-redirect', 'eligible'):
             insert_fixed_response_rule(alb['LoadBalancerArn'])
         else:
             logger.error(f"ALB {alb_name} is not elibible for emergency redirect. See documentation")
@@ -205,7 +205,7 @@ def check_activation_status(alb, verbose=False):
         for rule in rules:
             if rule['Priority'] == first_priority:
                 logger.debug(rule['RuleArn'])
-                if has_tag(rule['RuleArn'], 'emergency_redirect', 'active'):
+                if has_tag(rule['RuleArn'], 'emergency-redirect', 'active'):
                     status = 'activated'
     return status
 
@@ -236,7 +236,7 @@ def insert_fixed_response_rule(alb_arn):
                         }
                     }],
                     Tags=[{
-                        'Key': 'emergency_redirect',
+                        'Key': 'emergency-redirect',
                         'Value': 'active'
                     }],
                 )
@@ -251,7 +251,7 @@ def delete_fixed_response_rule(alb_arn):
         for rule in rules:
             if rule['Priority'] == first_priority:
                 logger.debug(rule['RuleArn'])
-                if has_tag(rule['RuleArn'], 'emergency_redirect', 'active'):
+                if has_tag(rule['RuleArn'], 'emergency-redirect', 'active'):
                     logger.debug(f"deleting rule:\n{yaml.dump(rule)}")
                     elbv2.delete_rule(RuleArn=rule['RuleArn'])
 

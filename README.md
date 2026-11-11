@@ -41,7 +41,7 @@ There are 2 requirements for a UC3 app to participate in emergency-redirect:
 
 1. An application's ALB must not have a Listener Rule set with `priority: 1`.
    This priority is reserved for use by emergency-redirect.
-1. Applications must __enroll__ by adding a specific resource tag to the app's ALB.
+1. Applications must _enroll_ by adding a specific resource tag to the app's ALB.
    ALBs missing this tag are ignored.  This is a failsafe for bulk activation:
    ```
    Key: 'emergency-redirect'
@@ -50,17 +50,17 @@ There are 2 requirements for a UC3 app to participate in emergency-redirect:
 
 ### Execution Prerequisites
 
-This is a cli tool.  The operator must have a shell environnment with the following:
+This is a cli tool.  The operator must have a shell environment with the following:
 
 - Python 3 environment
 - AWS SSO role with permission to describe load balancers, tags, listeners,
   and rules, and to create and delete listener rules:
   - `elasticloadbalancing:DescribeLoadBalancers`
-  - `DescribeTags`
-  - `DescribeListeners`
-  - `DescribeRules`
-  - `CreateRule` 
-  - `DeleteRule`
+  - `elasticloadbalancing:DescribeTags`
+  - `elasticloadbalancing:DescribeListeners`
+  - `elasticloadbalancing:DescribeRules`
+  - `elasticloadbalancing:CreateRule` 
+  - `elasticloadbalancing:DeleteRule`
 
 
 
