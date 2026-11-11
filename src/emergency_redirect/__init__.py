@@ -142,27 +142,6 @@ def deactivate(all_alb, alb_name):
         raise click.UsageError("Error: You must provide at least one option: --alb-name or --all-alb")
 
 
-
-def has_tag(resource_arn, key, value):
-    response = elbv2.describe_tags(ResourceArns=[resource_arn])
-    tags = response['TagDescriptions'][0]['Tags']
-    logger.debug(f"Rule tags:\n {yaml.dump(tags)}")
-    matching_tag = next((item for item in tags if item["Key"] == key and item["Value"] == value), False)
-    if matching_tag:
-        return True
-    return False
-
-def get_alb_by_name(alb_name):
-    try:
-        response = elbv2.describe_load_balancers(Names=[alb_name])
-        logger.debug(yaml.dump(response))
-        loadbalancer = response['LoadBalancers'].pop()
-    except ClientError as e:
-        logger.error(f"Exception: {type(e).__name__}")
-        logger.error(e)
-        sys.exit(1)
-    return loadbalancer
-
 def get_internet_facing_alb():
     paginator = elbv2.get_paginator('describe_load_balancers')
     for response in paginator.paginate():
@@ -175,6 +154,16 @@ def get_internet_facing_alb():
         ]
     return alb_list
 
+def get_alb_by_name(alb_name):
+    try:
+        response = elbv2.describe_load_balancers(Names=[alb_name])
+        logger.debug(yaml.dump(response))
+        loadbalancer = response['LoadBalancers'].pop()
+    except ClientError as e:
+        logger.error(f"Exception: {type(e).__name__}")
+        logger.error(e)
+        sys.exit(1)
+    return loadbalancer
 
 def get_listeners(alb_arn):
     paginator = elbv2.get_paginator('describe_listeners')
@@ -183,13 +172,21 @@ def get_listeners(alb_arn):
         alb_listeners = [l for l in response['Listeners']]
     return alb_listeners
 
-
 def get_listener_rules(listener_arn):
     paginator = elbv2.get_paginator('describe_rules')
     for response in paginator.paginate(ListenerArn=listener_arn):
         logger.debug(yaml.dump(response))
         listener_rules = [r for r in response['Rules']]
     return listener_rules
+
+def has_tag(resource_arn, key, value):
+    response = elbv2.describe_tags(ResourceArns=[resource_arn])
+    tags = response['TagDescriptions'][0]['Tags']
+    logger.debug(f"Resource tags:\n{yaml.dump(tags)}")
+    matching_tag = next((item for item in tags if item["Key"] == key and item["Value"] == value), False)
+    if matching_tag:
+        return True
+    return False
 
 def check_activation_status(alb, verbose=False):
     status = '-'

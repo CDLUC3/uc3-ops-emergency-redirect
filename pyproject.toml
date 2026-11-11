@@ -1,0 +1,21 @@
+[project]
+name = "emergency-redirect"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+authors = [
+    { name = "Ashley Gould", email = "agould@ucop.edu" }
+]
+requires-python = ">=3.11"
+dependencies = [
+    "boto3>=1.44.0",
+    "click>=8.5.1",
+    "pyyaml>=6.0.3",
+]
+
+[project.scripts]
+emergency-redirect = "emergency_redirect:cli"
+
+[build-system]
+requires = ["uv_build>=0.13.7,<0.14.0"]
+build-backend = "uv_build"

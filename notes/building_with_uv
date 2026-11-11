@@ -1,0 +1,28 @@
+________________________________________________________________________________
+11/10/2026
+
+ 1109  pip install uv
+ 1110  uv init emergency-redirect --app
+ 1111  cd emergency-redirect/
+ 1121  rm .python-version
+ 1123  uv add click
+ 1124  uv add boto3
+ 1125  uv add PyYAML
+
+agould@linux:~/git/github/cdluc3/emergency-redirect> uv build
+Building source distribution...
+Building wheel from source distribution...
+Successfully built dist/emergency_redirect-0.1.0.tar.gz
+Successfully built dist/emergency_redirect-0.1.0-py3-none-any.whl
+
+agould@linux:~/git/github/cdluc3/emergency-redirect> pip install -e .
+Obtaining file:///home/agould/git/github/cdluc3/emergency-redirect
+...
+Building wheels for collected packages: emergency-redirect
+  Building editable for emergency-redirect (pyproject.toml) ... done
+  Created wheel for emergency-redirect: filename=emergency_redirect-0.1.0-py3-none-any.whl size=6296 sha256=88cf10d6dcb6c04c487c747f10622196dcbb09a3253a56021a2e9eadeeac06a9
+  Stored in directory: /tmp/pip-ephem-wheel-cache-hvce26dn/wheels/52/a3/08/e87ff21f4e9b6866b9b269fc6de6086acd557a0c559234656a
+Successfully built emergency-redirect
+Installing collected packages: emergency-redirect
+Successfully installed emergency-redirect-0.1.0
+
