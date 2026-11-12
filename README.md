@@ -217,7 +217,7 @@ Works great if your template has only one or a few resources.  You do not need
 to update your cfn template.  However, all resources in the stack will recieve
 the `emergency-redirect` tag.
 
-**my-sceptre-project/config/dev/alb.yaml**
+**`my-sceptre-project/config/dev/alb.yaml`**
 ```yaml
 
 template:
@@ -251,7 +251,7 @@ sceptre_user_data:
   emergency_redirect_eligible: False
 ```
   
-**my-sceptre-project/config/prd/network.yaml.j2**
+**`my-sceptre-project/config/prd/network.yaml.j2`**
 ```yaml
 template:
   path: 'network.yaml.j2'
@@ -265,7 +265,7 @@ sceptre_user_data:
   emergency_redirect_eligible: blee
 ```
 
-**my-sceptre-project/config/prd/network.yaml.j2**
+**`my-sceptre-project/config/prd/network.yaml.j2`**
 ```yaml
 AWSTemplateFormatVersion: '2010-09-09'
 Description: 'Application load balancer and network resources for my-sceptre-project'
