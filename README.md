@@ -41,12 +41,13 @@ There are 2 requirements for a UC3 app to participate in emergency-redirect:
 
 1. An application's ALB must not have a Listener Rule set with `priority: 1`.
    This priority is reserved for use by emergency-redirect.
-1. Applications must _enrole_ by adding a specific resource tag to the app's ALB.
+1. Applications must made _eligible_ by [adding a specific resource tag to the app's ALB](#tagging_albs_with_sceptre).
+
    ```
    Key: 'emergency-redirect'
    Value: 'eligible'
    ```
-   ALBs missing this tag are ignored.  This is a failsafe for bulk activation:
+   ALBs missing this tag are ignored.  This is a failsafe for bulk activation.
 
 ### Execution Prerequisites
 
