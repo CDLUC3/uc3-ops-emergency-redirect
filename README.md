@@ -209,6 +209,88 @@ Deactivation deletes priority-`1` rules tagged `emergency_redirect=active`
 from the named load balancer's listeners, irregardless of _eligibility_.
 
 
+## Tagging ALBs with Sceptre
+
+### Method 1 - modify `stack_tags` for alb template
+
+Works great if your template has only one or a few resources.  You do not need
+to update your cfn template.  However, all resources in the stack will recieve
+the `emergency-redirect` tag.
+
+**my-sceptre-project/config/dev/alb.yaml**
+```yaml
+
+template:
+  path: alb.yaml.j2
+
+sceptre_user_data:
+  blaa blaa blaa
+
+stack_tags_inheritance: merge
+stack_tags:
+  emergency-redirect: eligible
+```
+
+
+### method 2 - add tag to alb resource in template
+
+Better for when you want more control of which resources get the new tag.
+Template must support Jinja2 markup.  Doing this with straight CFN conditionals
+was awful, and I never got it to work.
+
+
+**my-sceptre-project/config/config.yaml**
+```yaml
+project_code: my-sceptre-project
+region: us-west-2
+sceptre_user_data_inheritance: merge
+
+sceptre_user_data:
+  ...
+  # set default for ALB tagging
+  emergency_redirect_eligible: False
+```
+  
+**my-sceptre-project/config/prd/network.yaml.j2**
+```yaml
+template:
+  path: 'network.yaml.j2'
+  type: 'file'
+
+parameters:
+  blaa blaa
+
+sceptre_user_data:
+  ...
+  emergency_redirect_eligible: blee
+```
+
+**my-sceptre-project/config/prd/network.yaml.j2**
+```yaml
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'Application load balancer and network resources for my-sceptre-project'
+          
+Parameters:
+  blaa blaa blaa
+
+Resources:
+  Alb:
+    Type: 'AWS::ElasticLoadBalancingV2::LoadBalancer'
+    Properties:
+      Name: !Sub "${AWS::StackName}-ALB"
+      Type: 'application'
+      Scheme: 'internet-facing'
+      SecurityGroups:
+        - !Ref AlbSecurityGroup
+      Subnets: !Ref Subnets
+      {%- if sceptre_user_data.emergency_redirect_eligible == 'True' %}
+      Tags:
+        - Key: 'emergency-redirect'
+          Value: 'eligible'
+      {% endif %}
+```
+
+
 
 ## Development
 
