@@ -232,14 +232,14 @@ stack_tags:
 ```
 
 
-### method 2 - add tag to alb resource in template
+### Method 2 - add tag to alb resource in template
 
 Better for when you want more control of which resources get the new tag.
 Template must support Jinja2 markup.  Doing this with straight CFN conditionals
 was awful, and I never got it to work.
 
 
-**my-sceptre-project/config/config.yaml**
+**`my-sceptre-project/config/config.yaml`**
 ```yaml
 project_code: my-sceptre-project
 region: us-west-2
