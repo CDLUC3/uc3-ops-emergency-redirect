@@ -14,9 +14,8 @@ ToDo
 
 Issues
 ------
-
-- can we run this in cdl-main account as well?
-- what happens with API clients?
+- should we limit access to only AWS account admins?
 - what status code do we return?
+- what happens with API clients?
 - what does escalope do for alerts associated with cdl sytsem status page?
 - can we provide more info for IAS regarding what software our apps run
