@@ -119,16 +119,11 @@ Options:
 agould@linux:~> emergency-redirect list
 ALB Name                                 Eligibility 
 ----------------------------------------------------
-dmp-tool-dev-alb-ALB                     -           
-mrt-ecs-ephemeral-ELB-ui                 -           
-uc3-ops-ecs-dev-alb-ALB                  eligible    
-mrt-ecs-dbsnapshot-ELB-ui                -           
-mrt-ecs-dbsnapshot-ELB-admin             -           
-mrt-ecs-ephemeral-ELB-admin              -           
-rams-dev-alb                             -           
-mrt-ecs-dev-ELB-admin                    -           
-mrt-ecs-dev-ELB-ui                       -           
-ezid-n2t-dev-network-ALB                 -           
+dmp-xxxxxxx-ALB                          -           
+mrt-xxxxxxx-ALB                          -           
+uc3-xxxxxxx-ALB                          eligible    
+mrt-xxxxxxx-ALB-ui                       -           
+mrt-xxxxxxx-ALB-admin                    -           
 ```
 
 Eligibility is controlled by the load balancer tag `emergency-redirect=eligible`.
@@ -152,17 +147,11 @@ Options:
 agould@linux:~> emergency-redirect status 
 ALB Name                                 Status      
 ----------------------------------------------------
-dmp-tool-dev-alb-ALB                     -           
-mrt-ecs-ephemeral-ELB-ui                 -           
-uc3-ops-ecs-dev-alb-ALB                  active           
-mrt-ecs-dbsnapshot-ELB-ui                -           
-mrt-ecs-dbsnapshot-ELB-admin             -           
-mrt-ecs-ephemeral-ELB-admin              -           
-rams-dev-alb                             -           
-mrt-ecs-dev-ELB-admin                    -           
-mrt-ecs-dev-ELB-ui                       -           
-ezid-n2t-dev-network-ALB                 -           
-
+dmp-xxxxxxx-ALB                          -           
+mrt-xxxxxxx-ALB                          -           
+uc3-xxxxxxx-ALB                          active    
+mrt-xxxxxxx-ALB-ui                       -           
+mrt-xxxxxxx-ALB-admin                    -           
 ```
 
 ### activate
@@ -179,7 +168,7 @@ Options:
   --all-alb        Include all ALBs
   --alb-name TEXT  Name of an ALB in current account
 
-agould@linux:~> emergency-redirect activate --alb-name dmp-tool-dev-alb-ALB
+agould@linux:~> emergency-redirect activate --alb-name dmp-xxxxxx-ALB
 agould@linux:~> emergency-redirect activate --all-alb
 ```
 
@@ -202,7 +191,7 @@ Options:
   --all-alb        Include all ALBs
   --alb-name TEXT  Name of an ALB in current account
 
-agould@linux:~> emergency-redirect deactivate --alb-name uc3-ops-ecs-dev-alb-ALB
+agould@linux:~> emergency-redirect deactivate --alb-name uc3-xxxxxxx-ALB
 agould@linux:~> emergency-redirect deactivate --all-alb
 ```
 
